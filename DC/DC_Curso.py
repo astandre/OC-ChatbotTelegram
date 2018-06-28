@@ -1,4 +1,17 @@
 
+def getCursos(cn):
+    try:
+        with cn.cursor() as cursor:
+            # Read a single record
+            sql = "select id_curso, nombre from curso"
+            if cursor.execute(sql) != 0:
+                result = cursor.fetchall()
+                return result
+            else:
+                return 0
+    except Exception:
+        print("error", Exception)
+
 
 def getCursoDescription(cn, id_curso):
     try:

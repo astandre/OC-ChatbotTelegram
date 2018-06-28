@@ -2,6 +2,13 @@ from DC import DC_Sinonimo, DC_Curso, DC_Tweets
 import unicodedata
 
 
+def getCursos(connection):
+    resp = DC_Curso.getCursos(connection)
+    if resp != 0:
+        return resp
+    else:
+        return 0
+
 def getCursoDescripcion(connection, data):
     new_data = cleanData(data)
     id_curso = DC_Sinonimo.getIdCurso(connection, new_data.upper())
