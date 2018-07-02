@@ -1,4 +1,4 @@
-from DC import DC_Sinonimo, DC_Curso, DC_Tweets
+from DC import DC_Sinonimo, DC_Curso
 import unicodedata
 
 
