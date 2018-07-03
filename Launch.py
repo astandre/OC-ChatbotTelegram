@@ -51,7 +51,32 @@ def faq(bot, update):
     question = update.message.text
     logger.info(question[0:].upper())
     if question[0:4].upper() == "/FAQ":
-        update.message.reply_text("Ingresa tu pregunta")
+        if len(question) > 6:
+            question = update.message.text[5:len(update.message.text)]
+            logger.info("FAQ [QUESTION] %s ", question)
+            logger.info("FAQ [USER] %s ", user)
+            full_name = update.message.chat.first_name + " " + update.message.chat.last_name
+            date = update.message.date.strftime('%Y-%m-%d %H:%M:%S')
+            full_message = '"' + str(update.message) + '"'
+            if BL_Inputs.insertTweet(connection, full_name, date, user,
+                                     update.message.text, "Telegram", "null", full_message) != 0:
+                logger.info("Mensaje guardado en la Base de datos!")
+            else:
+                logger.info(" No se ha podido guardar el tweet")
+            resp = BL_FAQ.getRespuesta(connection, question)
+            if resp != 0:
+                size = 280 - (len(resp["link"]) + 16)
+                full_response = resp["respuesta"][0:size] + "... " + resp["link"]
+                full_response = full_response + " Puedes usar /cancel para salir al menu."
+                update.message.reply_text(full_response)
+                logger.info("FAQ [RESP] %s ", full_response)
+                return FAQ
+            else:
+                error = "No se ha encontrado " + question + " Puedes usar /cancel para salir al menu."
+                logger.error(error)
+                update.message.reply_text(PREGUNTA_NO_ENCONTRADA)
+        else:
+            update.message.reply_text("Ingresa tu pregunta")
         return FAQ
     else:
         logger.info("FAQ [QUESTION] %s ", question)
@@ -583,17 +608,12 @@ def main():
                       CommandHandler('temas', temas),
                       CommandHandler('competencias', competencias),
                       CommandHandler('retos', retos),
-                      # RegexHandler('(/{0}[a-zA-Z]\w)*', faq),
-                      # TODO check this
                       CommandHandler('ayuda', help),
                       ],
 
         states={
-            # FAQ: [RegexHandler('(/{0}[a-zA-Z]\w)*', faq)],
             FAQ: [MessageHandler(Filters.text, faq),
                   CommandHandler('faq', faq)],
-            # PHOTO: [MessageHandler(Filters.photo, photo),
-            #         CommandHandler('skip', skip_photo)],
             PRE: [MessageHandler(Filters.text, prerequisitos),
                   CommandHandler('prerequisitos', prerequisitos)],
             FECHA: [MessageHandler(Filters.text, fechas),
@@ -614,8 +634,6 @@ def main():
                           CommandHandler('inscripcion', inscripcion)],
             MENU: [MessageHandler(Filters.text, info),
                    CommandHandler('menu', menu)],
-            # CURSO: [MessageHandler(Filters.text, aboutCurso),
-            #         RegexHandler('([a-zA-Z]\w)*', aboutCurso)]
         },
 
         fallbacks=[CommandHandler('cancel', cancel)]
