@@ -17,25 +17,26 @@ def init_chatbot():
         commands_simple = []
         commands_full = ""
         for command in commands_raw:
-            command_name = "/" + command["name"]
+            command_name = response["prefix"] + command["name"]
             commands_simple.append([command_name])
             command_full = "- " + command_name + ": " + command["description"] + ". \n"
             commands_full += command_full
         response = {"simple": commands_simple, "full": commands_full}
     else:
-        print(r)
+        print(r.json())
         response = None
     return response
 
 
 def chat_with_system(data):
-    url = BASE_URL + '/init/'
-    json = {'key': CONNECTION_KEY, "content": data["content"]}
+    url = BASE_URL + '/chat/'
+    json = {'key': CONNECTION_KEY}
+    json.update(data)
+    print(">>>>> SentData ", url, json)
     r = requests.post(url, json=json)
+    print("<<<<< ReceivedData ", r.json())
     if r.status_code == 200:
         response = r.json()
-        print(response)
     else:
-        print(r)
         response = None
     return response

@@ -25,7 +25,6 @@ def start(bot, update):
 
 def menu(bot, update):
     logger.info("MENU")
-    logger.debug("RAW-Mesage %s", update.message)
     full_response = "¿Que te gustaria hacer?\nLos comandos soportados son: \n"
     full_response += COMANDOS_DISPONIBLES_FULL
     update.message.reply_text(full_response, parse_mode='Markdown',
@@ -33,15 +32,19 @@ def menu(bot, update):
 
 
 def chat(bot, update):
-    logger.info("FAQ")
+    bot.sendChatAction(update.message.chat_id, action=ChatAction.TYPING)
     logger.info("Raw-Message: %s", update.message)
-    user = update.message.from_user.username
+    print(update)
+    user_name = update.message.from_user.username
     content = update.message.text
-    data = {"user": user, "content": content}
+    name = update.message.from_user.first_name + " " + update.message.from_user.last_name
+    id_account = update.message.chat_id
+    data = {"user_name": user_name, "content": content, "name": name, "id_account": id_account}
+    if len(update.message.entities) > 0:
+        data.update({"command": {"begin": update.message.entities[0].offset, "end": update.message.entities[0].length}})
     resp = chat_with_system(data)
     if resp is not None:
-        update.message.reply_text(resp)
-        bot.sendChatAction(update.message.chat_id, action=ChatAction.TYPING)
+        update.message.reply_text(resp["output"])
     else:
         logger.error("Error")
         update.message.reply_text(constants.ERROR)
@@ -72,13 +75,15 @@ def main():
     conv_handler = ConversationHandler(
         entry_points=[CommandHandler('start', start),
                       CommandHandler('menu', menu),
-                      RegexHandler('\w', chat),
+                      RegexHandler('.', chat),
+                      # RegexHandler('\w', chat),
+                      # CommandHandler('cursos', chat),
                       CommandHandler('ayuda', help),
                       ],
 
         states={
             CHAT: [MessageHandler(Filters.text, chat),
-                   CommandHandler('chat', chat)],
+                   CommandHandler('cursos', chat)],
         },
 
         fallbacks=[CommandHandler('cancel', cancel)]
